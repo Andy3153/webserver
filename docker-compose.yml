@@ -1,6 +1,6 @@
 ## vim: set fenc=utf-8 ts=2 sw=0 sts=0 sr et si tw=0 fdm=marker fmr={{{,}}}:
 ##
-## My webserver's docker-compose file by Andy3153
+## My webserver's docker-compose file
 ## created   30/08/22 ~ 15:34:12
 ## modified1 11/02/24 ~ 19:46:23
 ##
@@ -143,7 +143,10 @@ services:
       - nextcloud-app_admin_password
     volumes:
       - nextcloud:/var/www/html
+      - nextcloud-apps:/var/www/html/custom_apps
+      - nextcloud-config:/var/www/html/config
       - nextcloud-data:/var/www/html/data
+      - nextcloud-themes:/var/www/html/themes
     networks:
       - nextcloud-backend
   # }}}
@@ -171,19 +174,42 @@ secrets:
 # {{{ Volumes
 volumes:
   proxy-data:
+    name: webserver_proxy-data
     external: true
+
   nextcloud:
+    name: webserver_nextcloud
+    external: true
+
+  nextcloud-apps:
+    name: webserver_nextcloud-apps
+    external: true
+
+  nextcloud-config:
+    name: webserver_nextcloud-config
+    external: true
+
   nextcloud-data:
-    #external: true
+    name: webserver_nextcloud-data
+    external: true
+
+  nextcloud-themes:
+    name: webserver_nextcloud-themes
+    external: true
+
   nextcloud-db:
-    #external: true
+    name: webserver_nextcloud-db
+    external: true
   # }}}
 # }}}
 
 # {{{ Networks
 networks:
   frontend:
+    name: webserver_frontend
     driver: bridge
+
   nextcloud-backend:
+    name: webserver_nextcloud-backend
     driver: bridge
 # }}}
