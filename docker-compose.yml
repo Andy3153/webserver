@@ -28,10 +28,19 @@ services:
     networks:
       - frontend
   # }}}
+
 # }}}
 
 # {{{ Secrets
 secrets:
+  pydio-db_database:
+    file: ./secrets/pydio-db_database
+  pydio-db_user:
+    file: ./secrets/pydio-db_user
+  pydio-db_password:
+    file: ./secrets/pydio-db_password
+  pydio-db_root_password:
+    file: ./secrets/pydio-db_root_password
 # }}}
 
 # {{{ Volumes
@@ -39,6 +48,7 @@ volumes:
   proxy-data:
     name: webserver_proxy-data
     external: true
+
 # }}}
 
 # {{{ Networks
@@ -46,6 +56,7 @@ networks:
   frontend:
     name: webserver_frontend
     driver: bridge
+
 # }}}
 
 # {{{ Dumpster
@@ -184,6 +195,53 @@ networks:
 ## }}}
 # }}}
 
+  # {{{ Pydio
+  ##
+  ## 1st attempt to replace Nextcloud
+  ##
+
+## {{{ App
+#pydio-app:
+#  container_name: "webserver_pydio-app"
+#  image: lscr.io/linuxserver/pydio-cells:latest
+#  restart: always
+#  tty: true
+#  depends_on:
+#    - pydio-db
+#  environment:
+#    - EXTERNALURL=cloud.andy3153.duckdns.org
+#    #- SERVER_IP=pydio-app
+#  volumes:
+#    - pydio-config:/config
+#    - pydio-data:/config/data
+#  networks:
+#    - frontend
+#    - pydio-backend
+## }}}
+#
+## {{{ Database
+#pydio-db:
+#  container_name: "webserver_pydio-db"
+#  image: mariadb:latest
+#  restart: always
+#  tty: true
+#  environment:
+#    - MYSQL_DATABASE_FILE=/run/secrets/pydio-db_database
+#    - MYSQL_USER_FILE=/run/secrets/pydio-db_user
+#    - MYSQL_PASSWORD_FILE=/run/secrets/pydio-db_password
+#    - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/pydio-db_root_password
+#  secrets:
+#    - pydio-db_database
+#    - pydio-db_user
+#    - pydio-db_password
+#    - pydio-db_root_password
+#  volumes:
+#    - pydio-db:/var/lib/mysql
+#  networks:
+#    - pydio-backend
+## }}}
+  # }}}
+
 
 # {{{ Volumes
 #nextcloud:
@@ -209,11 +267,25 @@ networks:
 #nextcloud-db:
 #  name: webserver_nextcloud-db
 #  external: true
+
+#pydio-config:
+#  name: webserver_pydio-config
+#  external: true
+#pydio-data:
+#  name: webserver_pydio-data
+#  external: true
+#pydio-db:
+#  name: webserver_pydio-db
+#  external: true
 # }}}
 
 # {{{ Networks
 #nextcloud-backend:
 #  name: webserver_nextcloud-backend
+#  driver: bridge
+
+#pydio-backend:
+#  name: webserver_pydio-backend
 #  driver: bridge
 # }}}
 
