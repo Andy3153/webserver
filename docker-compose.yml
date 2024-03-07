@@ -28,147 +28,10 @@ services:
     networks:
       - frontend
   # }}}
-
-  # {{{ DuckDNS
-  duckdns:
-    container_name: "webserver_duckdns"
-    image: lscr.io/linuxserver/duckdns:latest
-    restart: always
-    tty: true
-    environment:
-      - SUBDOMAINS=andy3153,nextcloud-andy3153
-      - FILE__TOKEN=/run/secrets/duckdns_token
-    secrets:
-      - duckdns_token
-    network_mode: "host"
-  # }}}
-
-  # {{{ Nextcloud
-  # {{{ Webserver
-  nextcloud-web:
-    container_name: "webserver_nextcloud-web"
-    build: ./build/nextcloud-web
-    image: webserver_nextcloud-web:latest
-    restart: always
-    tty: true
-    links:
-      - nextcloud-app
-    volumes_from:
-      - nextcloud-app
-    networks:
-      - frontend
-      - nextcloud-backend
-  # }}}
-
-  # {{{ Database
-  nextcloud-db:
-    container_name: "webserver_nextcloud-db"
-    image: mariadb:latest
-    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
-    restart: always
-    tty: true
-    environment:
-      - MYSQL_DATABASE_FILE=/run/secrets/nextcloud-db_database
-      - MYSQL_USER_FILE=/run/secrets/nextcloud-db_user
-      - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud-db_password
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/nextcloud-db_root_password
-    secrets:
-      - nextcloud-db_database
-      - nextcloud-db_user
-      - nextcloud-db_password
-      - nextcloud-db_root_password
-    volumes:
-      - nextcloud-db:/var/lib/mysql
-    networks:
-      - nextcloud-backend
-  # }}}
-
-  # {{{ Cache
-  nextcloud-cache:
-    container_name: "webserver_nextcloud-cache"
-    image: redis:alpine
-    restart: always
-    tty: true
-    networks:
-      - nextcloud-backend
-  # }}}
-
-  # {{{ Cron
-  nextcloud-cron:
-    container_name: "webserver_nextcloud-cron"
-    image: nextcloud:fpm
-    entrypoint: /cron.sh
-    restart: always
-    tty: true
-    depends_on:
-      - nextcloud-db
-      - nextcloud-cache
-    volumes_from:
-      - nextcloud-app:rw
-    networks:
-      - nextcloud-backend
-  # }}}
-
-  # {{{ App
-  nextcloud-app:
-    container_name: "webserver_nextcloud-app"
-    build: ./build/nextcloud-app
-    image: webserver_nextcloud-app:latest
-    restart: always
-    tty: true
-    depends_on:
-      - proxy
-      - nextcloud-db
-      - nextcloud-cache
-    environment:
-      - NEXTCLOUD_TRUSTED_DOMAINS=nextcloud-andy3153.duckdns.org
-      - TRUSTED_PROXIES=proxy
-      - OVERWRITEHOST=nextcloud-andy3153.duckdns.org
-      - OVERWRITEPROTOCOL=https
-      - OVERWRITECLIURL=https://nextcloud-andy3153.duckdns.org
-      - OVERWRITEWEBROOT=/
-      - APACHE_DISABLE_REWRITE_IP=1
-      - MYSQL_HOST=nextcloud-db
-      - REDIS_HOST=nextcloud-cache
-      - MYSQL_DATABASE_FILE=/run/secrets/nextcloud-db_database
-      - MYSQL_USER_FILE=/run/secrets/nextcloud-db_user
-      - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud-db_password
-      - NEXTCLOUD_ADMIN_USER_FILE=/run/secrets/nextcloud-app_admin_user
-      - NEXTCLOUD_ADMIN_PASSWORD_FILE=/run/secrets/nextcloud-app_admin_password
-    secrets:
-      - nextcloud-db_database
-      - nextcloud-db_user
-      - nextcloud-db_password
-      - nextcloud-app_admin_user
-      - nextcloud-app_admin_password
-    volumes:
-      - nextcloud:/var/www/html
-      - nextcloud-apps:/var/www/html/custom_apps
-      - nextcloud-config:/var/www/html/config
-      - nextcloud-data:/var/www/html/data
-      - nextcloud-themes:/var/www/html/themes
-    networks:
-      - nextcloud-backend
-  # }}}
-  # }}}
 # }}}
 
 # {{{ Secrets
 secrets:
-  duckdns_token:
-    file: ./secrets/duckdns_token
-  nextcloud-db_database:
-    file: ./secrets/nextcloud-db_database
-  nextcloud-db_user:
-    file: ./secrets/nextcloud-db_user
-  nextcloud-db_password:
-    file: ./secrets/nextcloud-db_password
-  nextcloud-db_root_password:
-    file: ./secrets/nextcloud-db_root_password
-  nextcloud-app_admin_user:
-    file: ./secrets/nextcloud-app_admin_user
-  nextcloud-app_admin_password:
-    file: ./secrets/nextcloud-app_admin_password
 # }}}
 
 # {{{ Volumes
@@ -176,31 +39,6 @@ volumes:
   proxy-data:
     name: webserver_proxy-data
     external: true
-
-  nextcloud:
-    name: webserver_nextcloud
-    external: true
-
-  nextcloud-apps:
-    name: webserver_nextcloud-apps
-    external: true
-
-  nextcloud-config:
-    name: webserver_nextcloud-config
-    external: true
-
-  nextcloud-data:
-    name: webserver_nextcloud-data
-    external: true
-
-  nextcloud-themes:
-    name: webserver_nextcloud-themes
-    external: true
-
-  nextcloud-db:
-    name: webserver_nextcloud-db
-    external: true
-  # }}}
 # }}}
 
 # {{{ Networks
@@ -208,8 +46,191 @@ networks:
   frontend:
     name: webserver_frontend
     driver: bridge
+# }}}
 
-  nextcloud-backend:
-    name: webserver_nextcloud-backend
-    driver: bridge
+# {{{ Dumpster
+##
+## Things I scrapped but I won't delete
+##
+
+# {{{ DuckDNS
+##
+## I still use DuckDNS, but now my OpenWRT router does the updating
+##
+
+#duckdns:
+#  container_name: "webserver_duckdns"
+#  image: lscr.io/linuxserver/duckdns:latest
+#  restart: always
+#  tty: true
+#  environment:
+#    - SUBDOMAINS=andy3153,nextcloud-andy3153
+#    - FILE__TOKEN=/run/secrets/duckdns_token
+#  secrets:
+#    - duckdns_token
+#  network_mode: "host"
+# }}}
+
+# {{{ Nextcloud
+##
+## This was the whole motivation for the project, but it's too slow on my RPi 4
+##
+
+## {{{ Webserver
+#nextcloud-web:
+#  container_name: "webserver_nextcloud-web"
+#  build: ./build/nextcloud-web
+#  image: webserver_nextcloud-web:latest
+#  restart: always
+#  tty: true
+#  links:
+#    - nextcloud-app
+#  volumes_from:
+#    - nextcloud-app
+#  networks:
+#    - frontend
+#    - nextcloud-backend
+## }}}
+#
+## {{{ Database
+#nextcloud-db:
+#  container_name: "webserver_nextcloud-db"
+#  image: mariadb:latest
+#  command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+#  restart: always
+#  tty: true
+#  environment:
+#    - MYSQL_DATABASE_FILE=/run/secrets/nextcloud-db_database
+#    - MYSQL_USER_FILE=/run/secrets/nextcloud-db_user
+#    - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud-db_password
+#    - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/nextcloud-db_root_password
+#  secrets:
+#    - nextcloud-db_database
+#    - nextcloud-db_user
+#    - nextcloud-db_password
+#    - nextcloud-db_root_password
+#  volumes:
+#    - nextcloud-db:/var/lib/mysql
+#  networks:
+#    - nextcloud-backend
+## }}}
+#
+## {{{ Cache
+#nextcloud-cache:
+#  container_name: "webserver_nextcloud-cache"
+#  image: redis:alpine
+#  restart: always
+#  tty: true
+#  networks:
+#    - nextcloud-backend
+## }}}
+#
+## {{{ Cron
+#nextcloud-cron:
+#  container_name: "webserver_nextcloud-cron"
+#  image: nextcloud:fpm
+#  entrypoint: /cron.sh
+#  restart: always
+#  tty: true
+#  depends_on:
+#    - nextcloud-db
+#    - nextcloud-cache
+#  volumes_from:
+#    - nextcloud-app:rw
+#  networks:
+#    - nextcloud-backend
+## }}}
+#
+## {{{ App
+#nextcloud-app:
+#  container_name: "webserver_nextcloud-app"
+#  build: ./build/nextcloud-app
+#  image: webserver_nextcloud-app:latest
+#  restart: always
+#  tty: true
+#  depends_on:
+#    - proxy
+#    - nextcloud-db
+#    - nextcloud-cache
+#  environment:
+#    - NEXTCLOUD_TRUSTED_DOMAINS=nextcloud-andy3153.duckdns.org
+#    - TRUSTED_PROXIES=proxy
+#    - OVERWRITEHOST=nextcloud-andy3153.duckdns.org
+#    - OVERWRITEPROTOCOL=https
+#    - OVERWRITECLIURL=https://nextcloud-andy3153.duckdns.org
+#    - OVERWRITEWEBROOT=/
+#    - APACHE_DISABLE_REWRITE_IP=1
+#    - MYSQL_HOST=nextcloud-db
+#    - REDIS_HOST=nextcloud-cache
+#    - MYSQL_DATABASE_FILE=/run/secrets/nextcloud-db_database
+#    - MYSQL_USER_FILE=/run/secrets/nextcloud-db_user
+#    - MYSQL_PASSWORD_FILE=/run/secrets/nextcloud-db_password
+#    - NEXTCLOUD_ADMIN_USER_FILE=/run/secrets/nextcloud-app_admin_user
+#    - NEXTCLOUD_ADMIN_PASSWORD_FILE=/run/secrets/nextcloud-app_admin_password
+#  secrets:
+#    - nextcloud-db_database
+#    - nextcloud-db_user
+#    - nextcloud-db_password
+#    - nextcloud-app_admin_user
+#    - nextcloud-app_admin_password
+#  volumes:
+#    - nextcloud:/var/www/html
+#    - nextcloud-apps:/var/www/html/custom_apps
+#    - nextcloud-config:/var/www/html/config
+#    - nextcloud-data:/var/www/html/data
+#    - nextcloud-themes:/var/www/html/themes
+#  networks:
+#    - nextcloud-backend
+## }}}
+# }}}
+
+
+# {{{ Volumes
+#nextcloud:
+#  name: webserver_nextcloud
+#  external: true
+#
+#nextcloud-apps:
+#  name: webserver_nextcloud-apps
+#  external: true
+#
+#nextcloud-config:
+#  name: webserver_nextcloud-config
+#  external: true
+#
+#nextcloud-data:
+#  name: webserver_nextcloud-data
+#  external: true
+#
+#nextcloud-themes:
+#  name: webserver_nextcloud-themes
+#  external: true
+#
+#nextcloud-db:
+#  name: webserver_nextcloud-db
+#  external: true
+# }}}
+
+# {{{ Networks
+#nextcloud-backend:
+#  name: webserver_nextcloud-backend
+#  driver: bridge
+# }}}
+
+# {{{ Secrets
+#duckdns_token:
+#  file: ./secrets/duckdns_token
+#nextcloud-db_database:
+#  file: ./secrets/nextcloud-db_database
+#nextcloud-db_user:
+#  file: ./secrets/nextcloud-db_user
+#nextcloud-db_password:
+#  file: ./secrets/nextcloud-db_password
+#nextcloud-db_root_password:
+#  file: ./secrets/nextcloud-db_root_password
+#nextcloud-app_admin_user:
+#  file: ./secrets/nextcloud-app_admin_user
+#nextcloud-app_admin_password:
+#  file: ./secrets/nextcloud-app_admin_password
+# }}}
 # }}}
