@@ -33,14 +33,6 @@ services:
 
 # {{{ Secrets
 secrets:
-  pydio-db_database:
-    file: ./secrets/pydio-db_database
-  pydio-db_user:
-    file: ./secrets/pydio-db_user
-  pydio-db_password:
-    file: ./secrets/pydio-db_password
-  pydio-db_root_password:
-    file: ./secrets/pydio-db_root_password
 # }}}
 
 # {{{ Volumes
@@ -195,10 +187,10 @@ networks:
 ## }}}
 # }}}
 
-  # {{{ Pydio
-  ##
-  ## 1st attempt to replace Nextcloud
-  ##
+# {{{ Pydio
+##
+## 1st attempt to replace Nextcloud
+##
 
 ## {{{ App
 #pydio-app:
@@ -240,7 +232,31 @@ networks:
 #  networks:
 #    - pydio-backend
 ## }}}
-  # }}}
+# }}}
+
+# {{{ Nextcloud All-In-One
+##
+## This piece of trash did not work at all
+##
+
+#nextcloudaio:
+#  container_name: "nextcloud-aio-mastercontainer"
+#  image: nextcloud/all-in-one:latest
+#  restart: always
+#  tty: true
+#  depends_on:
+#    - proxy
+#  environment:
+#    - APACHE_PORT=11000
+#    - APACHE_IP_BINDING=0.0.0.0
+#    - NEXTCLOUD_DATADIR=/mnt/ncdata
+#  volumes:
+#    - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+#    - nextcloudaio-data:/mnt/ncdata
+#    - /var/run/docker.sock:/var/run/docker.sock:ro
+#  networks:
+#    - frontend
+# }}}
 
 
 # {{{ Volumes
@@ -277,6 +293,13 @@ networks:
 #pydio-db:
 #  name: webserver_pydio-db
 #  external: true
+
+#nextcloud_aio_mastercontainer:
+#  name: nextcloud_aio_mastercontainer
+#  external: true
+#nextcloudaio-data:
+#  name: webserver_nextcloudaio-data
+#  external: true
 # }}}
 
 # {{{ Networks
@@ -304,5 +327,14 @@ networks:
 #  file: ./secrets/nextcloud-app_admin_user
 #nextcloud-app_admin_password:
 #  file: ./secrets/nextcloud-app_admin_password
+
+#pydio-db_database:
+#  file: ./secrets/pydio-db_database
+#pydio-db_user:
+#  file: ./secrets/pydio-db_user
+#pydio-db_password:
+#  file: ./secrets/pydio-db_password
+#pydio-db_root_password:
+#  file: ./secrets/pydio-db_root_password
 # }}}
 # }}}
